@@ -15,10 +15,12 @@ html,body{margin:0;height:100%;overflow:hidden;font-family:Tahoma,"Segoe UI",san
 .s{position:fixed;inset:0;display:none;flex-direction:column;gap:12px;overflow:auto;padding:calc(env(safe-area-inset-top) + 12px) 14px calc(env(safe-area-inset-bottom) + 12px);background:radial-gradient(circle at 85% 0,var(--p2),transparent 55%),var(--bg)}
 .s.on{display:flex}
 h2{margin:0;font-size:19px;text-align:center}
-.fr{position:relative;padding:8px;border-radius:32px;background:linear-gradient(135deg,var(--p),#fff 35%,var(--p2) 60%,var(--p));box-shadow:0 8px 26px color-mix(in srgb,var(--p) 45%,transparent),inset 0 0 0 3px #fff}
+.fr{position:relative;padding:12px;border-radius:34px;background:linear-gradient(145deg,#fff 0%,var(--p2) 16%,var(--p) 42%,color-mix(in srgb,var(--p) 62%,#000) 58%,var(--p) 74%,var(--p2) 90%,#fff 100%);box-shadow:0 16px 30px color-mix(in srgb,var(--p) 50%,transparent),0 4px 0 color-mix(in srgb,var(--p) 60%,#000),inset 3px 3px 5px #fffc,inset -4px -4px 8px color-mix(in srgb,var(--p) 60%,#000)}
+.fr::after{content:"💖";position:absolute;bottom:-13px;left:50%;transform:translateX(-50%);font-size:22px;z-index:3}
+.vf::after{content:"";position:absolute;inset:0;border-radius:23px;box-shadow:inset 0 8px 18px #000a,inset 0 0 0 2px #fff6;pointer-events:none}
 .fr::before{content:"🎀";position:absolute;top:-15px;left:50%;transform:translateX(-50%);font-size:28px;z-index:3}
 .fr.big{flex:1;min-height:0;margin-top:10px}
-.fr>*{border-radius:24px;display:block;width:100%}
+.fr>*{border-radius:23px;display:block;width:100%;box-shadow:0 0 0 3px #fff,0 0 0 5px color-mix(in srgb,var(--p) 70%,#000),inset 0 6px 14px #0008}
 .fr>img{height:100%;object-fit:contain;background:#fff}
 .vf{position:relative;height:100%;overflow:hidden;background:#2a1520}
 .vf video{width:100%;height:100%;object-fit:cover}
@@ -47,6 +49,9 @@ textarea{min-height:130px;resize:none}
 .hr{position:absolute;inset:0;display:grid;place-items:center;font-size:38px;animation:pu 1s infinite}
 .pb{height:12px;border-radius:9px;background:#fff;overflow:hidden;box-shadow:inset 0 0 0 2px var(--p2)}
 .pb i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--p),var(--p2));transition:width .5s}
+.kd{background:#fff;border:2px solid var(--p);border-radius:20px;padding:12px;box-shadow:0 4px 12px color-mix(in srgb,var(--p) 25%,transparent)}
+.kd summary{font-weight:700;list-style:none}.kd summary::after{content:" ▾"}.kd[open]>summary{margin-bottom:10px}
+.kd input{border:2px solid var(--p2);border-radius:14px;margin-bottom:10px}
 #tt{position:fixed;left:50%;bottom:110px;transform:translateX(-50%);background:var(--t);color:#fff;padding:10px 16px;border-radius:14px;font-size:13px;opacity:0;pointer-events:none;transition:.3s;max-width:88%;text-align:center;z-index:9}
 #tt.on{opacity:1}
 #ex{position:fixed;inset:0;background:#0006;display:none;place-items:center;z-index:8}
@@ -75,7 +80,7 @@ textarea{min-height:130px;resize:none}
 
 <section class="s" id="wk" style="justify-content:center">
  <div style="position:relative;width:110px;height:110px;margin:auto auto 0"><div class="rg"></div><div class="hr">💗</div></div>
- <h2 id="wt" style="margin-top:18px">در حال آماده‌سازی…</h2>
+ <h2 id="wt" style="margin-top:18px">در حال ساخت…</h2>
  <div class="pb" style="margin:14px 20px"><i id="pg"></i></div>
  <div class="row" style="margin:0 20px auto"><button class="b g" onclick="history.back()">لغو</button></div>
 </section>
@@ -88,9 +93,10 @@ textarea{min-height:130px;resize:none}
 
 <section class="s" id="st"><h2>تنظیمات ⚙️</h2>
  <div class="lb">تم برنامه</div><div class="th" id="tg"></div>
- <div class="lb">کلید API جمینای</div>
- <div class="fr" style="padding:6px"><input type="password" id="ky" placeholder="AIza..." dir="ltr" autocomplete="off"></div>
- <label class="lb"><input type="checkbox" onchange="ky.type=this.checked?'text':'password'"> نمایش کلید</label>
+ <div class="lb">کلیدهای API؛ اگر کلید اصلی خطا داد یا اعتبارش تمام شد، کمکی‌ها به ترتیب امتحان می‌شوند</div>
+ <div id="kl" style="display:flex;flex-direction:column;gap:10px"></div>
+ <label class="lb"><input type="checkbox" onchange="document.querySelectorAll('.kd input').forEach(x=>x.type=this.checked?'text':'password')"> نمایش کلیدها</label>
+ 
  <div class="lb">مدل ساخت تصویر</div>
  <div class="in"><input type="text" id="md" dir="ltr"></div>
  <div class="row" style="margin-top:auto"><button class="b" onclick="history.back()">بازگشت</button></div>
@@ -108,8 +114,10 @@ let face=L('face')||'user',stream,base,res,busy,ctl,depth=1,tmr;
 function setT(t){document.documentElement.dataset.t=t;S('theme',t);[...$('tg').children].forEach(b=>b.classList.toggle('on',b.dataset.t==t))}
 $('tg').innerHTML=TH.map(x=>`<button data-t="${x[0]}" onclick="setT('${x[0]}')"><i style="background:linear-gradient(135deg,${x[2]},#fff)"></i>${x[1]}</button>`).join('');
 setT(L('theme')||'rose');
-$('ky').value=L('key')||'';$('ky').oninput=e=>S('key',e.target.value.trim());
-$('md').value=L('model')||'gemini-2.5-flash-image';$('md').oninput=e=>S('model',e.target.value.trim());
+const KS=()=>{try{return JSON.parse(L('keys'))||[]}catch(e){return[]}};
+$('kl').innerHTML=['کلید اصلی','کلید کمکی ۱','کلید کمکی ۲','کلید کمکی ۳'].map((n,i)=>`<details class="kd" ${i?'':'open'}><summary>${n}</summary><input type="password" dir="ltr" id="k${i}" autocomplete="off" value="${(KS()[i]||'').replace(/"/g,'')}"><button class="b" style="width:100%" onclick="saveK(${i})">تایید و ثبت ✓</button></details>`).join('');
+function saveK(i){const a=KS();a[i]=$('k'+i).value.trim();S('keys',JSON.stringify(a));toast('کلید ثبت شد ✓')}
+$('md').value=L('pmodel')||'kontext';$('md').oninput=e=>S('pmodel',e.target.value.trim());
 
 function toast(m,ms=2800){const t=$('tt');t.textContent=m;t.classList.add('on');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('on'),ms)}
 function show(n){
@@ -143,7 +151,7 @@ function snap(){
   x.drawImage(v,0,0,w,h);base=c.toDataURL('image/jpeg',.95);$('pi').src=base;go('pv');
 }
 
-const ST=['در حال ارسال عکس…','جمینای در حال بررسی است…','در حال افزودن جادو ✨','کمی صبر کنید، تقریباً تمام شد…'];
+const ST=['در حال ساخت…','در حال ساخت…','در حال ساخت…','در حال ساخت…'];
 function prog(on){
   clearInterval(tmr);const b=$('pg');
   if(!on){return}
@@ -151,26 +159,32 @@ function prog(on){
   tmr=setInterval(()=>{p+=(92-p)*.06;b.style.width=p+'%';const k=Math.min(3,Math.floor(p/25));if(k!=i){i=k;$('wt').textContent=ST[k]}},700);
 }
 async function start(){
-  const key=L('key'),p=$('pt').value.trim();
-  if(!key){toast('ابتدا کلید API جمینای را در تنظیمات وارد کنید');return go('st')}
+  const keys=KS().filter(Boolean),p=$('pt').value.trim();
+  if(!keys.length){toast('ابتدا کلید API را در تنظیمات وارد کنید');return go('st')}
   if(!p)return toast('دستور را بنویسید');
   const src=($('cont').checked&&res)?res:base,mime=src.slice(5,src.indexOf(';'));
   go('wk');busy=true;ctl=new AbortController();prog(true);
   try{
-    const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${L('model')||'gemini-2.5-flash-image'}:generateContent`,{
-      method:'POST',signal:ctl.signal,headers:{'Content-Type':'application/json','x-goog-api-key':key},
-      body:JSON.stringify({contents:[{parts:[{text:p+'\n(Keep the person and composition natural; output only the edited image.)'},{inline_data:{mime_type:mime,data:src.split(',')[1]}}]}],generationConfig:{responseModalities:['TEXT','IMAGE']}})});
-    const j=await r.json();if(!r.ok)throw new Error(j.error&&j.error.message||r.status);
-    const pt=((j.candidates&&j.candidates[0]&&j.candidates[0].content.parts)||[]).find(x=>x.inlineData||x.inline_data);
-    if(!pt)throw new Error('تصویری دریافت نشد. دستور را تغییر دهید.');
-    const d=pt.inlineData||pt.inline_data;res=`data:${d.mimeType||d.mime_type};base64,${d.data}`;
+    const blob=await (await fetch(src)).blob();let last;
+    for(const key of keys){
+      try{
+        const fd=new FormData();fd.append('model',L('pmodel')||'kontext');fd.append('prompt',p);fd.append('image',blob,'photo.'+(mime.split('/')[1]||'jpg'));
+        const r=await fetch('https://gen.pollinations.ai/v1/images/edits',{method:'POST',signal:ctl.signal,headers:{Authorization:'Bearer '+key},body:fd});
+        let j={};try{j=await r.json()}catch(e){}
+        if(!r.ok){const er=new Error(r.status+' '+JSON.stringify(j.error||j).slice(0,160));er.st=r.status;throw er}
+        const d=j.data&&j.data[0];if(!d)throw new Error('تصویری دریافت نشد. دستور را تغییر دهید.');
+        res=d.b64_json?`data:image/png;base64,${d.b64_json}`:await toData(d.url);last=null;break;
+      }catch(e){if(e.name=='AbortError')throw e;last=e;if([400,404,413,422].includes(e.st))break}
+    }
+    if(last)throw last;
     $('pg').style.width='100%';busy=false;prog(false);$('ri').src=res;
     history.replaceState({n:'rs',d:depth},'');show('rs');
   }catch(e){
     busy=false;prog(false);if(e.name=='AbortError')return;
-    history.back();setTimeout(()=>{$('er').textContent='خطا: '+e.message},120);
+    history.back();setTimeout(()=>{const m=String(e.message);$('er').textContent=/quota|rate|429|402|pollen/i.test(m)?'اعتبار کلیدها تمام شده است. کلید دیگری اضافه کنید یا بعداً دوباره تلاش کنید.':/401|403|api key|permission|invalid/i.test(m)?'کلید API معتبر نیست؛ آن را در تنظیمات بررسی کنید.':/[\u0600-\u06FF]/.test(m)?m:'ساخت تصویر انجام نشد. اتصال اینترنت را بررسی و دوباره تلاش کنید.'},120);
   }
 }
+async function toData(u){try{const b=await (await fetch(u)).blob();return await new Promise(ok=>{const f=new FileReader();f.onload=()=>ok(f.result);f.readAsDataURL(b)})}catch(e){return u}}
 function save(){
   const a=document.createElement('a');a.href=res;a.download='cambin-'+Date.now()+'.png';
   document.body.appendChild(a);a.click();a.remove();toast('ذخیره شد ✓ اگر ذخیره نشد، روی تصویر نگه دارید',4000);
