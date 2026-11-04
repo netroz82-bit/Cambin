@@ -165,10 +165,10 @@ async function start(){
   const src=($('cont').checked&&res)?res:base,mime=src.slice(5,src.indexOf(';'));
   go('wk');busy=true;ctl=new AbortController();prog(true);
   try{
-    const blob=await (await fetch(src)).blob();let last;
+    const blob=await (await fetch(src)).blob();let last;const pe=await tr(p,keys);
     for(const key of keys){
       try{
-        const fd=new FormData();fd.append('model',L('pmodel')||'kontext');fd.append('prompt',p);fd.append('image',blob,'photo.'+(mime.split('/')[1]||'jpg'));
+        const fd=new FormData();fd.append('model',L('pmodel')||'kontext');fd.append('prompt',pe);fd.append('image',blob,'photo.'+(mime.split('/')[1]||'jpg'));
         const r=await fetch('https://gen.pollinations.ai/v1/images/edits',{method:'POST',signal:ctl.signal,headers:{Authorization:'Bearer '+key},body:fd});
         let j={};try{j=await r.json()}catch(e){}
         if(!r.ok){const er=new Error(r.status+' '+JSON.stringify(j.error||j).slice(0,160));er.st=r.status;throw er}
@@ -183,6 +183,18 @@ async function start(){
     busy=false;prog(false);if(e.name=='AbortError')return;
     history.back();setTimeout(()=>{const m=String(e.message);$('er').textContent=/quota|rate|429|402|pollen/i.test(m)?'اعتبار کلیدها تمام شده است. کلید دیگری اضافه کنید یا بعداً دوباره تلاش کنید.':/401|403|api key|permission|invalid/i.test(m)?'کلید API معتبر نیست؛ آن را در تنظیمات بررسی کنید.':/[\u0600-\u06FF]/.test(m)?m:'ساخت تصویر انجام نشد. اتصال اینترنت را بررسی و دوباره تلاش کنید.'},120);
   }
+}
+async function tr(p,keys){
+  if(!/[\u0600-\u06FF]/.test(p))return p;
+  for(const k of keys){
+    try{
+      const r=await fetch('https://gen.pollinations.ai/text/'+encodeURIComponent('Translate this image-editing instruction from Persian to English. Reply with ONLY the English translation, no quotes, no notes: '+p),{signal:ctl.signal,headers:{Authorization:'Bearer '+k}});
+      if(!r.ok)continue;
+      const t=(await r.text()).trim();
+      if(t&&t.length<600&&!/^[{<]/.test(t))return t;
+    }catch(e){if(e.name=='AbortError')throw e}
+  }
+  return p;
 }
 async function toData(u){try{const b=await (await fetch(u)).blob();return await new Promise(ok=>{const f=new FileReader();f.onload=()=>ok(f.result);f.readAsDataURL(b)})}catch(e){return u}}
 function save(){
