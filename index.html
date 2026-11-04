@@ -224,9 +224,21 @@ async function tr(p,keys){
   return p;
 }
 async function toData(u){try{const b=await (await fetch(u)).blob();return await new Promise(ok=>{const f=new FileReader();f.onload=()=>ok(f.result);f.readAsDataURL(b)})}catch(e){return u}}
-function save(){
-  const a=document.createElement('a');a.href=res;a.download='cambin-'+Date.now()+'.png';
-  document.body.appendChild(a);a.click();a.remove();toast('ذخیره شد ✓ اگر ذخیره نشد، روی تصویر نگه دارید',4000);
+async function save(){
+  let b;try{b=await (await fetch(res)).blob()}catch(e){return toast('ذخیره انجام نشد')}
+  const ty=b.type||'image/png',n='cambin-'+Date.now()+'.'+(ty.split('/')[1]||'png').replace('jpeg','jpg');
+  try{
+    const f=new File([b],n,{type:ty});
+    if(/Android|iPhone|iPad/i.test(navigator.userAgent)&&navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f]});return}
+  }catch(e){if(e&&e.name=='AbortError')return}
+  const u=URL.createObjectURL(b);
+  try{const a=document.createElement('a');a.href=u;a.download=n;document.body.appendChild(a);a.click();a.remove()}catch(e){}
+  const d=document.createElement('div');
+  d.style.cssText='position:fixed;inset:0;z-index:99;background:#000e;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:16px';
+  d.innerHTML='<div style="color:#fff;font:700 14px Tahoma,sans-serif;text-align:center;line-height:1.9">اگر دانلود شروع نشد، انگشت را روی تصویر نگه دارید و «ذخیره تصویر» را بزنید</div><img style="max-width:100%;max-height:66%;border-radius:12px;-webkit-touch-callout:default;-webkit-user-select:auto;user-select:auto"><button class="b" style="flex:none" onclick="history.back()">بستن</button>';
+  d.querySelector('img').src=u;document.body.appendChild(d);
+  history.pushState({n:'rs',d:depth},'');
+  addEventListener('popstate',()=>{d.remove();setTimeout(()=>URL.revokeObjectURL(u),1000)},{once:true});
 }
 show('cam');
 </script></body></html>
