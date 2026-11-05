@@ -104,8 +104,8 @@ textarea{min-height:130px;resize:none}
 
 <section class="s" id="rs"><h2>تصویر ساخته‌شده 🎉</h2>
  <div class="stage"><div class="fw"><div class="win" id="ri"><img class="bg"><img class="fg"></div><div class="fimg"></div></div></div>
- <div class="row"><button class="b" onclick="save()">💾 ذخیره</button><button class="b g" onclick="history.back()">دستور جدید</button></div>
- <div class="row"><button class="b g" onclick="home()">📷 عکس جدید</button></div>
+ <div class="row"><button class="b" onclick="save()">💾 ذخیره</button><button class="b" onclick="shareImg()">📤 اشتراک‌گذاری</button></div>
+ <div class="row"><button class="b g" onclick="history.back()">دستور جدید</button><button class="b g" onclick="home()">📷 عکس جدید</button></div>
 </section>
 
 <section class="s" id="st"><h2>تنظیمات ⚙️</h2>
@@ -249,21 +249,31 @@ async function tryShare(f){
   catch(e){if(e&&e.name=='AbortError')return true}
   return false;
 }
+async function getBlob(){
+  const b=await (await fetch(res)).blob(),ty=b.type||'image/png',n='cambin-'+Date.now()+'.'+(ty.split('/')[1]||'png').replace('jpeg','jpg');
+  return {b:b,n:n,f:new File([b],n,{type:ty})};
+}
+/* اشتراک‌گذاری: فقط منوی اشتراک‌گذاری گوشی */
+async function shareImg(){
+  let o;try{o=await getBlob()}catch(e){return toast('اشتراک‌گذاری انجام نشد')}
+  if(!(await tryShare(o.f)))toast('اشتراک‌گذاری در این دستگاه پشتیبانی نمی‌شود');
+}
+/* ذخیره: دانلود مستقیم فایل در دستگاه (بدون منوی اشتراک‌گذاری) */
 async function save(){
-  let b;try{b=await (await fetch(res)).blob()}catch(e){return toast('ذخیره انجام نشد')}
-  const ty=b.type||'image/png',n='cambin-'+Date.now()+'.'+(ty.split('/')[1]||'png').replace('jpeg','jpg'),f=new File([b],n,{type:ty});
-  if(await tryShare(f))return;
-  if(!/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)){
-    const u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download=n;document.body.appendChild(a);a.click();a.remove();
-    setTimeout(()=>URL.revokeObjectURL(u),4000);toast('در حال دانلود…');return;
-  }
-  /* موبایل/WebView: دانلود لینک blob پشتیبانی نمی‌شود (خطای "Can only download HTTP/HTTPS URIs")؛ فقط نمایش تصویر برای ذخیره با نگه‌داشتن انگشت */
-  const canSh=!!(navigator.share&&(!navigator.canShare||navigator.canShare({files:[f]})));
-  const d=document.createElement('div');
+  let o;try{o=await getBlob()}catch(e){return toast('ذخیره انجام نشد')}
+  const u=URL.createObjectURL(o.b),a=document.createElement('a');
+  a.href=u;a.download=o.n;a.style.display='none';document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(u),20000);
+  toast('در حال ذخیره…');
+  /* برنامه‌های APK (WebView): اگر دانلودکننده‌ی APK لینک blob را نپذیرد، فایل ذخیره نمی‌شود؛ راه جایگزین: نگه‌داشتن انگشت روی تصویر */
+  if(/; wv\)/.test(navigator.userAgent))setTimeout(holdSave,1500);
+}
+function holdSave(){
+  if(document.getElementById('hold'))return;
+  const d=document.createElement('div');d.id='hold';
   d.style.cssText='position:fixed;inset:0;z-index:99;background:#000e;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:16px';
-  d.innerHTML='<div style="color:#fff;font:700 14px Tahoma,sans-serif;text-align:center;line-height:1.9">برای ذخیره، انگشت را چند ثانیه روی تصویر نگه دارید و «ذخیره تصویر» را بزنید</div><img style="max-width:100%;max-height:62%;border-radius:12px;-webkit-touch-callout:default;-webkit-user-select:auto;user-select:auto">'+(canSh?'<button class="b g" id="shb" style="flex:none">📤 اشتراک‌گذاری</button>':'')+'<button class="b" style="flex:none" onclick="history.back()">بستن</button>';
+  d.innerHTML='<div style="color:#fff;font:700 14px Tahoma,sans-serif;text-align:center;line-height:1.9">اگر فایل ذخیره نشد، انگشت را چند ثانیه روی تصویر نگه دارید و «ذخیره تصویر» را بزنید</div><img style="max-width:100%;max-height:62%;border-radius:12px;-webkit-touch-callout:default;-webkit-user-select:auto;user-select:auto"><button class="b" style="flex:none" onclick="history.back()">بستن</button>';
   d.querySelector('img').src=res;
-  const sb=d.querySelector('#shb');if(sb)sb.onclick=()=>tryShare(f);
   document.body.appendChild(d);
   history.pushState({n:'rs',d:depth},'');
   addEventListener('popstate',()=>d.remove(),{once:true});
