@@ -151,10 +151,10 @@ async function checkKey(manual){
   if(!keys.length){setSt('bad');if(manual)toast('کلیدی ثبت نشده؛ در تنظیمات وارد کنید');return}
   setSt('chk');
   try{
-    const r=await fetch('https://gen.pollinations.ai/account/balance',{headers:{Authorization:'Bearer '+keys[0]}});
+    const r=await fetch('https://gen.pollinations.ai/text/ok?model=openai-fast',{headers:{Authorization:'Bearer '+keys[0]},signal:AbortSignal.timeout?AbortSignal.timeout(10000):undefined});
     if(r.ok){setSt('ok');if(manual)toast('متصل — کلید اصلی فعال است ✓')}
     else{setSt('bad');if(manual)toast(r.status==401?'کلید اصلی نامعتبر است':'کلید اصلی مشکل دارد؛ کلیدهای کمکی هنگام ساخت امتحان می‌شوند')}
-  }catch(e){setSt('bad');if(manual)toast('بررسی وضعیت ممکن نشد؛ اتصال اینترنت را بررسی کنید')}
+  }catch(e){setSt('bad');if(manual)toast('اتصال برقرار نشد؛ اگر Pollinations فیلتر است، فیلترشکن را روشن کنید و دوباره لمس کنید')}
 }
 const curModel=()=>'kontext';
 $('keep').checked=L('keep')!=='0';$('keep').onchange=e=>S('keep',e.target.checked?'1':'0');
